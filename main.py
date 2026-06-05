@@ -1,7 +1,14 @@
 import sqlite3
-
+from datetime import datetime
 # Define DBOperation class to manage all data into the database.
 # Give a name of your choice to the database
+
+DB_NAME = "airline.db"
+
+def get_connection():
+    conn = sqlite3.connect(DB_NAME)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
 class DBOperations:
@@ -19,7 +26,8 @@ class DBOperations:
 
   def __init__(self):
     try:
-      self.conn = sqlite3.connect("DBName.db")
+      self.conn = sqlite3.connect("airline.db")
+      self.conn =("PRAGMA foreign_keys = ON")
       self.cur = self.conn.cursor()
       self.cur.execute(self.sql_create_table_firsttime)
       self.conn.commit()
@@ -28,9 +36,14 @@ class DBOperations:
     finally:
       self.conn.close()
 
-  def get_connection(self):
-    self.conn = sqlite3.connect("DBName.db")
-    self.cur = self.conn.cursor()
+
+
+def get_connection(self):
+  self.conn = sqlite3.connect(DB_NAME)
+  self.conn.execute("PRAGMA foreign_keys = ON")
+  self.cur = self.conn.cursor()
+
+
 
   def create_table(self):
     try:
