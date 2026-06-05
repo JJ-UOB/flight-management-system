@@ -1,10 +1,12 @@
+DROP TABLE IF EXISTS aircraft_assignments;
 DROP TABLE IF EXISTS pilot_assignments;
 DROP TABLE IF EXISTS flights;
+DROP TABLE IF EXISTS aircraft;
 DROP TABLE IF EXISTS pilots;
 DROP TABLE IF EXISTS destinations;
 
 CREATE TABLE destinations (
-    destination_id INTEGER PRIMARY KEY,
+    destination_id TEXT PRIMARY KEY,
     airport_code TEXT NOT NULL UNIQUE,
     airport_name TEXT NOT NULL,
     city TEXT NOT NULL,
@@ -23,10 +25,19 @@ CREATE TABLE pilots (
     status TEXT NOT NULL DEFAULT 'Active'
 );
 
+CREATE TABLE aircraft (
+    aircraft_id INTEGER PRIMARY KEY,
+    registration_number TEXT NOT NULL UNIQUE,
+    aircraft_model TEXT NOT NULL,
+    manufacturer TEXT NOT NULL,
+    seat_capacity INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'Active'
+);
+
 CREATE TABLE flights (
-    flight_id INTEGER PRIMARY KEY,
+    flight_id TEXT PRIMARY KEY,
     flight_number TEXT NOT NULL UNIQUE,
-    destination_id INTEGER NOT NULL,
+    destination_id TEXT NOT NULL,
     departure_datetime TEXT NOT NULL,
     arrival_datetime TEXT NOT NULL,
     gate TEXT,
@@ -39,7 +50,7 @@ CREATE TABLE flights (
 
 CREATE TABLE pilot_assignments (
     assignment_id INTEGER PRIMARY KEY,
-    flight_id INTEGER NOT NULL,
+    flight_id TEXT NOT NULL,
     pilot_id INTEGER NOT NULL,
     pilot_role TEXT NOT NULL,
     assigned_at TEXT NOT NULL,
@@ -52,4 +63,20 @@ CREATE TABLE pilot_assignments (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
     UNIQUE (flight_id, pilot_id, pilot_role)
+);
+
+CREATE TABLE aircraft_assignments (
+    aircraft_assignment_id INTEGER PRIMARY KEY,
+    flight_id TEXT NOT NULL UNIQUE,
+    aircraft_id INTEGER NOT NULL,
+    assigned_at TEXT NOT NULL,
+    assignment_status TEXT NOT NULL DEFAULT 'Assigned',
+    FOREIGN KEY (flight_id)
+        REFERENCES flights(flight_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (aircraft_id)
+        REFERENCES aircraft(aircraft_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
