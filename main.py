@@ -24,6 +24,57 @@ def print_results(rows, headings):
         print(" | ".join(str(value) for value in row))
 
 
+def show_useful_ids():
+    """Show useful IDs so the user knows what to enter."""
+    conn = get_connection()
+    cur = conn.cursor()
+
+    print("\nUseful IDs")
+    print("==========")
+
+    cur.execute("""
+        SELECT destination_id, airport_code, city, country
+        FROM destinations
+        ORDER BY airport_code
+    """)
+    print_results(
+        cur.fetchall(),
+        ["Destination ID", "Airport Code", "City", "Country"]
+    )
+
+    cur.execute("""
+        SELECT flight_id, flight_number, status
+        FROM flights
+        ORDER BY departure_datetime
+    """)
+    print_results(
+        cur.fetchall(),
+        ["Flight ID", "Flight Number", "Status"]
+    )
+
+    cur.execute("""
+        SELECT pilot_id, first_name || ' ' || last_name, rank, status
+        FROM pilots
+        ORDER BY pilot_id
+    """)
+    print_results(
+        cur.fetchall(),
+        ["Pilot ID", "Pilot Name", "Rank", "Status"]
+    )
+
+    cur.execute("""
+        SELECT aircraft_id, registration_number, aircraft_model, status
+        FROM aircraft
+        ORDER BY aircraft_id
+    """)
+    print_results(
+        cur.fetchall(),
+        ["Aircraft ID", "Registration", "Model", "Status"]
+    )
+
+    conn.close()
+
+
 def view_flights():
     """Retrieve flights by destination, status, departure date, or show all."""
     print("\nView Flights")
@@ -55,6 +106,12 @@ def view_flights():
     """
 
     values = []
+
+    print("\nSearch help:")
+    print("Destination city examples: New York, London, Dubai, Paris")
+    print("Status options: Scheduled, Delayed, Cancelled, Boarding")
+    print("Date format: YYYY-MM-DD, for example 2026-06-10")
+
 
     if choice == "2":
         city = input("Enter destination city: ").strip()
@@ -101,6 +158,14 @@ def view_flights():
 def add_new_flight():
     """Add a new flight record."""
     print("\nAdd a New Flight")
+
+
+    print("\nBefore adding a flight, use one of these destination IDs:")
+    view_destinations()
+
+    print("\nStatus options: Scheduled, Delayed, Cancelled, Boarding")
+    print("Datetime format: YYYY-MM-DD HH:MM")
+
 
     flight_id = input("Enter flight ID, e.g. FLT-SBA-JFK-0201: ").strip().upper()
     flight_number = input("Enter flight number, e.g. SBA-JFK-0201: ").strip().upper()
@@ -251,10 +316,28 @@ def view_pilot_schedule():
     """Show all flights assigned to one pilot."""
     print("\nView Pilot Schedule")
 
-    pilot_id = int(input("Enter pilot ID: "))
-
     conn = get_connection()
     cur = conn.cursor()
+
+    print("\nAvailable pilots")
+
+    cur.execute("""
+            SELECT
+                pilot_id,
+                first_name || ' ' || last_name,
+                rank,
+                status
+            FROM pilots
+            ORDER BY pilot_id
+        """)
+
+    rows = cur.fetchall()
+
+    print_results(rows, ["Pilot ID", "Pilot Name", "Rank", "Status"])
+
+    print("\nCopy one Pilot ID from the list above.")
+
+    pilot_id = int(input("Enter pilot ID: "))
 
     cur.execute("""
         SELECT
@@ -280,7 +363,7 @@ def view_pilot_schedule():
 
     rows = cur.fetchall()
     conn.close()
-
+    
     headings = [
         "Pilot ID",
         "Pilot Name",
@@ -412,8 +495,7 @@ def summary_reports():
         cur.execute("""
             SELECT
                 p.pilot_id,
-                p.first_name
-                \ || ' ' || p.last_name,
+                p.first_name || ' ' || p.last_name,
                 COUNT(pa.assignment_id)
             FROM pilots p
             LEFT JOIN pilot_assignments pa
@@ -452,6 +534,7 @@ def main_menu():
     while True:
         print("\nFlight Management System")
         print("************************")
+        print("0. Show Useful IDs")
         print("1. Add a New Flight")
         print("2. View Flights")
         print("3. Update Flight Information")
@@ -465,7 +548,9 @@ def main_menu():
 
         choice = input("\nEnter your choice: ").strip()
 
-        if choice == "1":
+        if choice == "0":
+            show_useful_ids()
+        elif choice == "1":
             add_new_flight()
         elif choice == "2":
             view_flights()
